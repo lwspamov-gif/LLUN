@@ -90,8 +90,6 @@ def main() -> int:
         str(PLAYER_FILE),
         str(animation_path),
         "--loop",
-        "--fps",
-        "60",
         "--color",
         "truecolor",
     ]

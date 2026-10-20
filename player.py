@@ -14,7 +14,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Play a compressed ASCII animation in the terminal.")
     parser.add_argument("animation", nargs="?", default="animation.json.gz", help="Path to animation file")
     parser.add_argument("--loop", action="store_true", help="Repeat the animation in an infinite loop")
-    parser.add_argument("--fps", type=float, default=60.0, help="Playback FPS override")
+    parser.add_argument("--fps", type=float, default=0.0, help="Playback FPS override")
     parser.add_argument("--width", type=int, default=None, help="Override terminal width")
     parser.add_argument("--color", choices=["truecolor", "monochrome"], default="truecolor", help="Color mode")
     return parser.parse_args()
@@ -32,18 +32,34 @@ def load_animation(path: str) -> dict:
 
 
 def render_frame(frame: dict, color_mode: str) -> str:
-    lines: list[str] = []
+    lines = []
+
     for row in frame.get("rows", []):
         chars = row["chars"] if isinstance(row, dict) and "chars" in row else row
         colors = row.get("colors", []) if isinstance(row, dict) else []
+
         if color_mode == "monochrome":
             lines.append("".join(chars))
             continue
-        line = []
+
+        parts = []
+        previous_rgb = None
+
         for idx, ch in enumerate(chars):
-            rgb = colors[idx] if idx < len(colors) else [255, 255, 255]
-            line.append(f"{ANSI_TRUECOLOR.format(r=rgb[0], g=rgb[1], b=rgb[2])}{ch}\033[0m")
-        lines.append("".join(line))
+            if idx < len(colors):
+                rgb = tuple(int(v) for v in colors[idx][:3])
+            else:
+                rgb = (255, 255, 255)
+
+            if rgb != previous_rgb:
+                parts.append(f"\033[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m")
+                previous_rgb = rgb
+
+            parts.append(ch)
+
+        parts.append("\033[0m")
+        lines.append("".join(parts))
+
     return "\n".join(lines)
 
 

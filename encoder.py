@@ -62,6 +62,7 @@ def resize_ascii_frame(frame: np.ndarray, width: int) -> np.ndarray:
 def frame_to_ascii_rows(frame: np.ndarray) -> tuple[list[str], list[list[list[int]]]]:
     frame = frame.astype(np.uint8)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     rows: list[str] = []
     row_colors: list[list[list[int]]] = []
     for y, row in enumerate(gray):
@@ -71,7 +72,7 @@ def frame_to_ascii_rows(frame: np.ndarray) -> tuple[list[str], list[list[list[in
             idx = int((value / 255.0) * (len(PALETTE) - 1))
             idx = max(0, min(len(PALETTE) - 1, idx))
             chars.append(PALETTE[idx])
-            rgb = frame[y, x].tolist()
+            rgb = rgb_frame[y, x].tolist()
             colors.append([int(v) for v in rgb])
         rows.append("".join(chars))
         row_colors.append(colors)
@@ -119,13 +120,14 @@ def build_animation(video_path: str, width: int, target_fps: float, quality: str
     if not frames:
         raise ValueError("No frames were decoded from the source video.")
 
+    effective_fps = min(float(target_fps), float(source_fps))
     profile = quality_profile(quality)
     output_frames: list[dict] = []
     for index, frame in enumerate(frames):
         adjusted = adjust_frame(frame, profile)
         resized = resize_ascii_frame(adjusted, width)
         rows, row_colors = frame_to_ascii_rows(resized)
-        timestamp = index / max(target_fps, 1e-6)
+        timestamp = index / max(effective_fps, 1e-6)
         output_frames.append({
             "timestamp": float(timestamp),
             "rows": [{"chars": chars, "colors": colors} for chars, colors in zip(rows, row_colors)],
@@ -138,7 +140,7 @@ def build_animation(video_path: str, width: int, target_fps: float, quality: str
         "source_width": src_width,
         "source_height": src_height,
         "source_fps": float(source_fps),
-        "target_fps": float(target_fps),
+        "target_fps": effective_fps,
         "quality": quality,
         "frames": output_frames,
     }
