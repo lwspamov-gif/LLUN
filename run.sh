@@ -31,5 +31,5 @@ echo "Installing dependencies..."
 "$VENV_PYTHON" -m pip install --upgrade pip
 "$VENV_PYTHON" -m pip install -r requirements.txt
 
-echo "Launching ASCII-Video..."
+echo "Launching LLUN..."
 "$VENV_PYTHON" run.py

@@ -31,8 +31,8 @@ if ($LASTEXITCODE -ne 0) {
     throw "Failed to install dependencies from requirements.txt."
 }
 
-Write-Host "Launching ASCII-Video..."
+Write-Host "Launching LLUN..."
 & $VenvPython .\run.py
 if ($LASTEXITCODE -ne 0) {
-    throw "ASCII-Video exited with an error."
+    throw "LLUN exited with an error."
 }

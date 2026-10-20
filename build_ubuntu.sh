@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ANIMATION="$ROOT/output/animation.json.gz"
-SPEC="$ROOT/ubuntu.spec"
+SPEC="$ROOT/packaging/ubuntu/LLUN.spec"
 
 if [[ ! -f "$ANIMATION" ]]; then
   echo "Animation file not found: $ANIMATION" >&2
@@ -40,7 +40,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='ASCII-Video',
+    name='LLUN',
     debug=False,
     strip=False,
     upx=True,
@@ -51,5 +51,5 @@ exe = EXE(
 EOF
 
 pyinstaller --distpath "$ROOT/dist" --workpath "$ROOT/build" "$SPEC"
-chmod +x "$ROOT/dist/ASCII-Video"
-echo "Ubuntu build complete: $ROOT/dist/ASCII-Video"
+chmod +x "$ROOT/dist/LLUN"
+echo "Ubuntu build complete: $ROOT/dist/LLUN"

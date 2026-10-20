@@ -27,7 +27,7 @@ def load_default_config() -> dict[str, Any]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="ASCII-Video: terminal ASCII video converter and player")
+    parser = argparse.ArgumentParser(description="LLUN: windowed ASCII video player and converter")
     parser.add_argument("source", nargs="?", help="Input video file or animation archive")
     parser.add_argument("--output", help="Output animation file (.avz)")
     parser.add_argument("--width", type=int, help="ASCII width in terminal cells")

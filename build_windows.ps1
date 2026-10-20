@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $VideoInput = Join-Path $Root 'video.mp4'
 $AnimationPath = Join-Path $Root 'output\animation.json.gz'
-$SpecPath = Join-Path $Root 'windows.spec'
+$SpecPath = Join-Path $Root 'packaging\windows\LLUN.spec'
 
 if (-not (Test-Path $VideoInput)) {
     throw "Missing source video: $VideoInput. Place video.mp4 in the project root first."
@@ -46,7 +46,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='ASCII-Video.exe',
+    name='LLUN.exe',
     debug=False,
     strip=False,
     upx=True,
@@ -57,4 +57,4 @@ exe = EXE(
 '@ | Set-Content -Path $SpecPath -Encoding UTF8
 
 pyinstaller --distpath (Join-Path $Root 'dist') --workpath (Join-Path $Root 'build') $SpecPath
-Write-Host "Windows build complete: dist\ASCII-Video.exe"
+Write-Host "Windows build complete: dist\LLUN.exe"

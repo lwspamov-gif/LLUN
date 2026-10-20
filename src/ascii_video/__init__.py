@@ -1,4 +1,4 @@
-"""ASCII-Video package."""
+"""LLUN package."""
 
 from .core import *
 
