@@ -9,8 +9,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 REQ_FILE = ROOT / "requirements.txt"
+ENCODER_FILE = ROOT / "encoder.py"
 PLAYER_FILE = ROOT / "player.py"
 ANIMATION_FILE = ROOT / "output" / "animation.json.gz"
+
+
+def find_video_file() -> Path | None:
+    preferred = ROOT / "video.mp4"
+    if preferred.exists():
+        return preferred
+
+    matches = sorted(ROOT.glob("*.mp4"))
+    if matches:
+        return matches[0]
+    return None
 
 
 def python_executable_for_venv() -> Path:
@@ -38,20 +50,51 @@ def ensure_requirements(python_bin: Path) -> None:
     subprocess.run([str(python_bin), "-m", "pip", "install", "-r", str(REQ_FILE)], check=True)
 
 
-def ensure_animation() -> None:
+def ensure_animation() -> Path:
     if ANIMATION_FILE.exists():
-        return
-    raise FileNotFoundError(
-        "Animation file not found: " + str(ANIMATION_FILE) + "\n"
-        "Generate it first with: python encoder.py video.mp4 --output output/animation.json.gz --width 300 --fps 60 --quality ultra"
+        return ANIMATION_FILE
+
+    video_path = find_video_file()
+    if video_path is None:
+        raise FileNotFoundError(
+            "No source video found. Put your video in the project root as video.mp4 or name any .mp4 file next to run.py."
+        )
+
+    print(f"Generating animation from {video_path.name}...")
+    subprocess.run(
+        [
+            sys.executable,
+            str(ENCODER_FILE),
+            str(video_path),
+            "--output",
+            str(ANIMATION_FILE),
+            "--width",
+            "300",
+            "--fps",
+            "60",
+            "--quality",
+            "ultra",
+        ],
+        check=True,
     )
+    return ANIMATION_FILE
 
 
 def main() -> int:
-    ensure_animation()
     python_bin = ensure_venv()
     ensure_requirements(python_bin)
-    cmd = [str(python_bin), str(PLAYER_FILE), str(ANIMATION_FILE), "--loop", "--fps", "60", "--color", "truecolor"]
+    animation_path = ensure_animation()
+
+    cmd = [
+        str(python_bin),
+        str(PLAYER_FILE),
+        str(animation_path),
+        "--loop",
+        "--fps",
+        "60",
+        "--color",
+        "truecolor",
+    ]
     print("Launching ASCII video in terminal... Press Ctrl+C to stop.")
     return subprocess.call(cmd)
 
