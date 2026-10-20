@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 REQ_FILE = ROOT / "requirements.txt"
 ENCODER_FILE = ROOT / "encoder.py"
-PLAYER_FILE = ROOT / "player.py"
+PLAYER_FILE = ROOT / "micro_player.py"
 ANIMATION_FILE = ROOT / "output" / "animation.json.gz"
 
 
@@ -89,12 +89,9 @@ def main() -> int:
         str(python_bin),
         str(PLAYER_FILE),
         str(animation_path),
-        "--loop",
-        "--color",
-        "truecolor",
     ]
-    print("Launching ASCII video in terminal... Press Ctrl+C to stop.")
-    return subprocess.call(cmd)
+    print("Launching LLUN Micro Player...")
+    return subprocess.call(cmd, cwd=ROOT)
 
 
 if __name__ == "__main__":
