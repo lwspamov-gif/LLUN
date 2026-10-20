@@ -10,7 +10,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-PALETTE = "@%#*+=-:. "
+PALETTE = r"""$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'. """
 DEFAULT_WIDTH = 100
 DEFAULT_FPS = 30.0
 DEFAULT_QUALITY = "ultra"
@@ -40,8 +40,14 @@ def adjust_frame(frame: np.ndarray, profile: dict[str, float]) -> np.ndarray:
     frame = (frame - 128.0) * profile["contrast"] + 128.0 + profile["brightness"]
     frame = np.clip(frame, 0.0, 255.0)
     frame = np.power(frame / 255.0, 1.0 / max(profile["gamma"], 1e-6)) * 255.0
-    frame = np.clip(frame, 0.0, 255.0)
-    return frame.astype(np.uint8)
+    frame = np.clip(frame, 0.0, 255.0).astype(np.uint8)
+
+    amount = float(profile.get("sharpen", 0.0))
+    if amount > 0:
+        blurred = cv2.GaussianBlur(frame, (0, 0), 1.0)
+        frame = cv2.addWeighted(frame, 1.0 + amount, blurred, -amount, 0)
+
+    return frame
 
 
 def resize_ascii_frame(frame: np.ndarray, width: int) -> np.ndarray:

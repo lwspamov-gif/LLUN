@@ -83,41 +83,49 @@ def play(animation_data: dict, loop: bool, fps_override: float, color_mode: str)
     if not frames:
         raise ValueError("The animation contains no frames.")
 
-    fps = float(animation_data.get("target_fps", fps_override))
+    fps = float(animation_data.get("target_fps", 30.0))
     if fps_override > 0:
         fps = fps_override
     fps = max(fps, 1e-6)
 
-    clear_terminal()
-    hide_cursor()
+    sys.stdout.write("\033[?1049h")
+    sys.stdout.write("\033[?25l")
+    sys.stdout.write("\033[2J\033[H")
+    sys.stdout.flush()
+
     try:
         index = 0
         next_frame_time = time.perf_counter()
+
         while True:
-            frame = frames[index % len(frames)]
+            frame = frames[index]
             text = render_frame(frame, color_mode)
-            sys.stdout.write("\033[H" + text + "\033[0m")
+
+            sys.stdout.write("\033[H")
+            sys.stdout.write(text)
+            sys.stdout.write("\033[0m\033[J")
             sys.stdout.flush()
 
-            next_index = index + 1
-            if next_index >= len(frames):
+            index += 1
+            if index >= len(frames):
                 if not loop:
                     break
-                next_index = 0
+                index = 0
 
-            frame_interval = 1.0 / fps
-            next_frame_time += frame_interval
-            now = time.perf_counter()
-            if now < next_frame_time:
-                time.sleep(max(0.0, next_frame_time - now))
+            next_frame_time += 1.0 / fps
+            delay = next_frame_time - time.perf_counter()
+
+            if delay > 0:
+                time.sleep(delay)
             else:
-                next_frame_time = now
+                next_frame_time = time.perf_counter()
 
-            index = next_index
     except KeyboardInterrupt:
-        print("\nPlayback stopped.")
+        pass
     finally:
-        show_cursor()
+        sys.stdout.write("\033[0m\033[?25h\033[?1049l")
+        sys.stdout.flush()
+
     return 0
 
 
