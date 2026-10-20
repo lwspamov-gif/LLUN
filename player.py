@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import gzip
 import json
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -88,16 +89,37 @@ def play(animation_data: dict, loop: bool, fps_override: float, color_mode: str)
         fps = fps_override
     fps = max(fps, 1e-6)
 
-    sys.stdout.write("\033[?1049h")
-    sys.stdout.write("\033[?25l")
-    sys.stdout.write("\033[2J\033[H")
+    frame_width = max(
+        len(row["chars"]) if isinstance(row, dict) and "chars" in row else len(row)
+        for row in frames[0].get("rows", [])
+    )
+    terminal_width = shutil.get_terminal_size((120, 40)).columns
+    if terminal_width < frame_width:
+        raise RuntimeError(
+            f"Кадр имеет ширину {frame_width} символов, а терминал вмещает {terminal_width}. "
+            "Разверни окно и уменьши размер шрифта или уменьши WIDTH в encoder."
+        )
+
+    sys.stdout.write("\033[?1049h\033[?25l\033[2J\033[H")
     sys.stdout.flush()
 
     try:
         index = 0
-        next_frame_time = time.perf_counter()
+        start_time = time.perf_counter()
+        interval = 1.0 / fps
 
-        while True:
+        while index < len(frames):
+            now = time.perf_counter()
+            elapsed = now - start_time
+            expected_index = int(elapsed * fps)
+            index = max(index, expected_index)
+
+            if index >= len(frames):
+                if not loop:
+                    break
+                start_time = time.perf_counter()
+                index = 0
+
             frame = frames[index]
             text = render_frame(frame, color_mode)
 
@@ -107,18 +129,10 @@ def play(animation_data: dict, loop: bool, fps_override: float, color_mode: str)
             sys.stdout.flush()
 
             index += 1
-            if index >= len(frames):
-                if not loop:
-                    break
-                index = 0
-
-            next_frame_time += 1.0 / fps
-            delay = next_frame_time - time.perf_counter()
-
+            target_time = start_time + index * interval
+            delay = target_time - time.perf_counter()
             if delay > 0:
                 time.sleep(delay)
-            else:
-                next_frame_time = time.perf_counter()
 
     except KeyboardInterrupt:
         pass
