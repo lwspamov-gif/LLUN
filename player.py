@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import gzip
 import json
-import os
 import sys
 import time
 from pathlib import Path
@@ -67,27 +66,37 @@ def play(animation_data: dict, loop: bool, fps_override: float, color_mode: str)
     frames = animation_data.get("frames", [])
     if not frames:
         raise ValueError("The animation contains no frames.")
+
     fps = float(animation_data.get("target_fps", fps_override))
     if fps_override > 0:
         fps = fps_override
+    fps = max(fps, 1e-6)
+
     clear_terminal()
     hide_cursor()
     try:
         index = 0
+        next_frame_time = time.perf_counter()
         while True:
             frame = frames[index % len(frames)]
             text = render_frame(frame, color_mode)
-            sys.stdout.write("\r" + text)
+            sys.stdout.write("\033[H" + text + "\033[0m")
             sys.stdout.flush()
+
             next_index = index + 1
             if next_index >= len(frames):
                 if not loop:
                     break
                 next_index = 0
-            target_timestamp = frame.get("timestamp", index / max(fps, 1e-6))
-            sleep_seconds = (1.0 / max(fps, 1e-6)) - 0.016
-            if sleep_seconds > 0:
-                time.sleep(sleep_seconds)
+
+            frame_interval = 1.0 / fps
+            next_frame_time += frame_interval
+            now = time.perf_counter()
+            if now < next_frame_time:
+                time.sleep(max(0.0, next_frame_time - now))
+            else:
+                next_frame_time = now
+
             index = next_index
     except KeyboardInterrupt:
         print("\nPlayback stopped.")

@@ -11,8 +11,8 @@ import cv2
 import numpy as np
 
 PALETTE = "@%#*+=-:. "
-DEFAULT_WIDTH = 300
-DEFAULT_FPS = 60.0
+DEFAULT_WIDTH = 100
+DEFAULT_FPS = 30.0
 DEFAULT_QUALITY = "ultra"
 
 
@@ -49,10 +49,9 @@ def resize_ascii_frame(frame: np.ndarray, width: int) -> np.ndarray:
         frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
     if frame.shape[2] == 4:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-    if frame.shape[2] == 3:
-        rgb = frame[:, :, ::-1].astype(np.float32)
-    else:
+    if frame.shape[2] != 3:
         raise ValueError(f"Unsupported frame format: {frame.shape}")
+
     height, width_orig = frame.shape[:2]
     scale = width / float(width_orig)
     target_h = max(1, int(round(height * scale * 0.5)))
