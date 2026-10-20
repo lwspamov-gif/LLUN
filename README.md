@@ -1,22 +1,23 @@
-﻿# ASCII-Video
+# LLUN
 
-ASCII-Video — это простой проект для превращения обычного видео в цветную ASCII-анимацию, которая проигрывается прямо в терминале.
+ASCII-видеоплеер в отдельном окне: видео преобразуется в цветную ASCII-анимацию и проигрывается в окне Pygame, без прокрутки обычной терминальной консоли.
 
 ## Что делает проект
 
 - читает `video.mp4` через OpenCV;
-- уменьшает кадры до ширины терминала;
-- сохраняет пропорции видео;
-- переводит яркость и RGB-цвета в символы ASCII;
-- поддерживает цветной вывод в ANSI True Color;
-- проигрывает анимацию по кругу до `Ctrl+C`;
-- работает на Windows 10, Ubuntu и Arch Linux.
+- переводит кадры в ASCII-символы с сохранением RGB-цвета;
+- поддерживает цветной вывод True Color;
+- рисует анимацию в отдельном окне, а не в консоли;
+- повторяет видео бесконечно до `Esc` или `Ctrl+C`;
+- поддерживает Windows 10, Ubuntu, Arch Linux.
 
 ## Быстрый запуск
 
 ### Windows 10 (PowerShell)
 
 ```powershell
+git clone https://github.com/lwspamov-gif/LLUN.git
+cd LLUN
 Set-ExecutionPolicy -Scope Process Bypass
 .\run.ps1
 ```
@@ -24,25 +25,26 @@ Set-ExecutionPolicy -Scope Process Bypass
 ### Ubuntu / Arch Linux (Bash)
 
 ```bash
+git clone https://github.com/lwspamov-gif/LLUN.git
+cd LLUN
 chmod +x run.sh
 ./run.sh
 ```
 
 ## Требования
 
-- Python 3
-- терминал с поддержкой ANSI True Color (желательно)
+- Python 3.11+
+- `numpy`
+- `opencv-python`
+- `pygame` / `pygame-ce`
 - подключение к интернету при первой установке зависимостей
 
-## Как подготовить проект
+## Как подготовить проект вручную
 
-1. Помести исходное видео в корень проекта как `video.mp4`.
-2. Убедись, что в папке есть файлы:
-   - `run.py`
-   - `run.sh`
-   - `run.ps1`
-   - `requirements.txt`
-3. Запусти:
+1. Положи исходное видео в корень проекта как `video.mp4`.
+2. Создай виртуальное окружение.
+3. Установи зависимости.
+4. Запусти `run.py`.
 
 ### Windows 10
 
@@ -51,7 +53,7 @@ py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-.\run.ps1
+python .\run.py
 ```
 
 ### Ubuntu / Arch Linux
@@ -61,55 +63,46 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-chmod +x run.sh
-./run.sh
+python run.py
 ```
 
-## Команды запуска для GitHub
+## Запуск отдельного окна
 
-### Ubuntu / Arch Linux
-
-```bash
-git clone https://github.com/lwspamov-gif/LLUN.git
-cd LLUN
-chmod +x run.sh
-./run.sh
-```
-
-### Windows 10
+Если нужно открыть самостоятельное чёрное окно вместо обычного терминала, используй:
 
 ```powershell
-git clone https://github.com/lwspamov-gif/LLUN.git
-cd LLUN
-.\run.ps1
+Set-ExecutionPolicy -Scope Process Bypass
+.\start-video.ps1
 ```
+
+Окно будет развёрнуто на весь экран и будет запускать проект в отдельном PowerShell-процессе.
+
+## Управление
+
+- `Space` — пауза / продолжение
+- `←` / `→` — предыдущий / следующий кадр
+- `F11` — полноэкранный режим
+- `Esc` — выход
 
 ## Важные замечания
 
-- `60 FPS` — целевая частота, а не жёсткая гарантия. При медленном терминале кадры могут пропускаться, чтобы не накапливалась задержка.
-- Ширина 300 символов подходит только для достаточно широкого окна терминала.
-- Если терминал не поддерживает ANSI True Color, программа может перейти в более простой режим вывода, но при этом будет продолжать работать.
-- Для остановки нажмите `Ctrl+C`.
+- `output/animation.json.gz` — уже сгенерированная анимация. Если поменялись настройки кодирования, удаляй старый кэш и пересоздавай его.
+- Плотная ASCII-кадровая графика очень тяжёлая для терминала и даже для окна. Если окно слишком узкое, строка переносится, поэтому ширину нужно уменьшить или развернуть окно.
+- Для более плавного воспроизведения можно уменьшать `--width` в `encoder.py` или `run.py`.
 
 ## GitHub и публикация
 
-После фиксации обновлений можно опубликовать проект в GitHub командой:
-
 ```bash
 git add .
-git commit -m "Fix README encoding and terminal playback instructions"
+git commit -m "Update LLUN README and launcher instructions"
 git branch -M main
-git remote add origin https://github.com/lwspamov-gif/LLUN.git
 git push -u origin main
 ```
 
-Если remote уже существует, используйте:
+Если remote уже настроен:
 
 ```bash
-git remote set-url origin https://github.com/lwspamov-gif/LLUN.git
-git push --force-with-lease origin main
+git add README.md
+git commit -m "Update LLUN README"
+git push
 ```
-
-## Что важно для корректного отображения на GitHub
-
-Файл README должен быть сохранён в UTF-8. В старых редакторах иногда сохраняли файл в неправильной кодировке, из-за чего GitHub показывал символы в виде "ромбиков" или вопросительных знаков. В репозитории добавлен файл `.gitattributes`, который помогает Git правильно трактовать текстовые файлы и сохраняет их в корректной кодировке.
