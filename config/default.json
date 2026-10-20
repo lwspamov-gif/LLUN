@@ -1,0 +1,16 @@
+{
+  "quality": "ultra",
+  "color_mode": "truecolor",
+  "target_fps": 60,
+  "width": 300,
+  "loop": true,
+  "preserve_aspect_ratio": true,
+  "adaptive_terminal_size": false,
+  "skip_late_frames": true,
+  "gamma": 1.0,
+  "contrast": 1.1,
+  "brightness": 0,
+  "sharpen": 0.0,
+  "charset": "@%#*+=-:. ",
+  "unicode_half_block": false
+}
