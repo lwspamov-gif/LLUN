@@ -42,11 +42,23 @@ def get_frame_width(frame: dict) -> int:
     return width
 
 
-def layout_for_frame(frame: dict, start_font_size: int = 16) -> tuple[pygame.font.Font, int, int]:
-    font = pygame.font.SysFont("consolas", start_font_size)
-    cell_w = max(1, font.size("M")[0])
-    cell_h = max(1, font.get_linesize())
-    return font, cell_w, cell_h
+def layout_for_frame(frame: dict, available_width: int, available_height: int) -> tuple[pygame.font.Font, int, int]:
+    rows = frame.get("rows", [])
+    grid_width = max(
+        (len(row.get("chars", "")) if isinstance(row, dict) else len(row))
+        for row in rows
+    ) if rows else 1
+    grid_height = max(1, len(rows))
+
+    for size in range(24, 3, -1):
+        font = pygame.font.SysFont("consolas", size)
+        cell_w = max(1, font.size("M")[0])
+        cell_h = max(1, font.get_linesize())
+        if cell_w * grid_width <= available_width and cell_h * grid_height <= available_height:
+            return font, cell_w, cell_h
+
+    font = pygame.font.SysFont("consolas", 4)
+    return font, max(1, font.size("M")[0]), max(1, font.get_linesize())
 
 
 def draw_frame(screen: pygame.Surface, animation: dict, frame_index: int, font: pygame.font.Font, cell_w: int, cell_h: int) -> None:
@@ -95,7 +107,7 @@ def main() -> int:
     base_h = min(info.current_h, 900)
     screen = pygame.display.set_mode((base_w, base_h), pygame.RESIZABLE)
 
-    font, cell_w, cell_h = layout_for_frame(frames[0])
+    font, cell_w, cell_h = layout_for_frame(frames[0], screen.get_width(), screen.get_height())
     frame_w = get_frame_width(frames[0])
     frame_h = len(frames[0].get("rows", []))
 
@@ -117,6 +129,9 @@ def main() -> int:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.VIDEORESIZE:
+                screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                font, cell_w, cell_h = layout_for_frame(frames[0], screen.get_width(), screen.get_height())
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
@@ -138,6 +153,7 @@ def main() -> int:
                         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
                     else:
                         screen = pygame.display.set_mode((base_w, base_h), pygame.RESIZABLE)
+                    font, cell_w, cell_h = layout_for_frame(frames[0], screen.get_width(), screen.get_height())
 
         if not paused:
             elapsed = time.perf_counter() - started
