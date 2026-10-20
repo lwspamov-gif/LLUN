@@ -1,0 +1,4 @@
+﻿*.md text working-tree-encoding=UTF-8 eol=lf
+*.py text working-tree-encoding=UTF-8 eol=lf
+*.ps1 text working-tree-encoding=UTF-8 eol=crlf
+*.sh text working-tree-encoding=UTF-8 eol=lf
